@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PomoBuddy Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        
+        .progress-bar {
+            transition: width 1s linear;
+        }
+
+        .countdown-animation {
+            animation: countdown 1s ease-in-out;
+        }
+
+        @keyframes countdown {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        .fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+        }
+        
+        .bg-dark-gradient {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        .bg-focus-gradient {
+            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 15px rgba(101, 116, 205, 0.5);
+        }
+        
+        .glow-button {
+            box-shadow: 0 0 15px rgba(101, 116, 205, 0.5);
+        }
+        
+        .neo-button {
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3),
+                      -5px -5px 10px rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-900" x-data="{ isMenuOpen: false }">
+    <!-- Nav-->
+    <nav class="bg-gray-900 border-b border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center">
+                        <i class="fas fa-clock text-indigo-500 text-2xl mr-2"></i>
+                        <span class="text-white font-bold text-xl">PomoBuddy</span>
+                    </a>
+                </div>
+                
+                <!-- PC nav-->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#" class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="#about" class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">About</a>
+                    <a href="#techniques" class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">Techniques</a>
+                    <a href="https://github.com/iboy-x" target="_blank" class="text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fab fa-github mr-1"></i> GitHub
+                    </a>
+                </div>
+                
+                <!-- for mobile menU -->
+                <div class="md:hidden">
+                    <button @click="isMenuOpen = !isMenuOpen" class="text-gray-300 hover:text-white">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" x-show="!isMenuOpen"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" x-show="isMenuOpen"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="md:hidden" x-show="isMenuOpen" @click.away="isMenuOpen = false">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    <a href="#" class="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium">Home</a>
+                    <a href="#about" class="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium">About</a>
+                    <a href="#techniques" class="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium">Techniques</a>
+                    <a href="https://github.com/iboy-x" target="_blank" class="text-gray-300 hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium">
+                        <i class="fab fa-github mr-1"></i> GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main  -->
+    <div x-data="timerApp()">
+        <!-- initail setup -->
+        <div class="min-h-screen flex flex-col items-center justify-center p-6 bg-dark-gradient" x-show="!timerActive && !showCountdown">
+            <div class="container mx-auto max-w-4xl">
+                <div class="text-center mb-8">
+                    <h1 class="text-4xl md:text-5xl font-bold text-indigo-400 mb-4 glow-text">Focus Better with PomoBuddy</h1>
+                    <p class="text-indigo-200 text-lg max-w-2xl mx-auto">Enhance your productivity using the Pomodoro technique. Set your timer, focus on your task, and take regular breaks.</p>
+                </div>
+                
+                <div class="max-w-md mx-auto glass-effect rounded-xl shadow-2xl p-8">
+                    <h2 class="text-2xl font-bold text-indigo-400 text-center mb-6 glow-text">Set Your Timer</h2>
+                    
+                    <div class="mb-6">
+                        <label for="subject" class="block text-indigo-200 font-medium mb-2">What are you studying?</label>
+                        <input type="text" id="subject" x-model="subject" 
+                            class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                            placeholder="e.g., Mathematics, Physics, History...">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-indigo-200 font-medium mb-2">Timer Settings (minutes)</label>
+                        <div class="flex space-x-4 items-center">
+                            <div class="flex-1">
+                                <label class="block text-sm text-indigo-300 mb-1">Focus</label>
+                                <input type="number" x-model="focusMinutes" min="1" max="120" 
+                                    class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <span class="text-indigo-400">|</span>
+                            <div class="flex-1">
+                                <label class="block text-sm text-indigo-300 mb-1">Break</label>
+                                <input type="number" x-model="breakMinutes" min="1" max="60" 
+                                    class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <label class="block text-indigo-200 font-medium mb-2">Background Sound</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button @click="selectSound('none')" 
+                                    :class="{'bg-indigo-600': selectedSound === 'none', 'bg-gray-800': selectedSound !== 'none'}"
+                                    class="py-2 px-3 rounded-lg text-sm text-indigo-200 border border-gray-700 hover:bg-gray-700 transition">
+                                None
+                            </button>
+                            <button @click="selectSound('rain')" 
+                                    :class="{'bg-indigo-600': selectedSound === 'rain', 'bg-gray-800': selectedSound !== 'rain'}"
+                                    class="py-2 px-3 rounded-lg text-sm text-indigo-200 border border-gray-700 hover:bg-gray-700 transition">
+                                Rain
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button @click="startCountdown()" 
+                            class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg text-lg font-medium hover:bg-indigo-700 transition duration-300 flex items-center justify-center glow-button">
+                        <i class="fas fa-play mr-2"></i> Start Focus Session
+                    </button>
+                </div>
+            </div>
+            
+            <!-- About Section -->
+            <div id="about" class="container mx-auto max-w-4xl pt-24 pb-16">
+                <div class="glass-effect rounded-xl p-8">
+                    <h2 class="text-3xl font-bold text-indigo-400 mb-6">About the Pomodoro Technique</h2>
+                    <div class="text-indigo-100">
+                        <p class="mb-4">The Pomodoro Technique is a time management method developed by Francesco Cirillo in the late 1980s. It uses a timer to break work into intervals, traditionally 25 minutes in length, separated by short breaks.</p>
+                        <p>This technique is based on the idea that frequent breaks can improve mental agility and help you stay focused for longer periods. By working in short, focused bursts and taking regular breaks, you can maintain a higher level of productivity throughout the day.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Techniques Section  -->
+            <div id="techniques" class="container mx-auto max-w-4xl pb-24">
+                <div class="glass-effect rounded-xl p-8">
+                    <h2 class="text-3xl font-bold text-indigo-400 mb-6">Productivity Techniques</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-gray-800 bg-opacity-50 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-indigo-300 mb-3">Traditional Pomodoro</h3>
+                            <p class="text-indigo-100">25 minutes of focused work followed by a 5-minute break. After 4 pomodoros, take a longer 15-30 minute break.</p>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-50 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-indigo-300 mb-3">52/17 Method</h3>
+                            <p class="text-indigo-100">Work for 52 minutes at full focus, then take a 17-minute break. Research suggests this ratio optimizes productivity.</p>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-50 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-indigo-300 mb-3">90-Minute Focus Blocks</h3>
+                            <p class="text-indigo-100">Based on ultradian rhythms, work in 90-minute intervals with 20-minute breaks to align with your body's natural energy cycles.</p>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-50 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-indigo-300 mb-3">Flowtime Technique</h3>
+                            <p class="text-indigo-100">Work until your focus naturally breaks, then take a break proportional to how long you worked. Track your natural patterns.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fullscreen bg-dark-gradient flex items-center justify-center" x-show="showCountdown">
+            <div class="text-white text-9xl font-bold countdown-animation glow-text" x-text="countdownNumber"></div>
+        </div>
+
+        
+        <div class="fullscreen bg-focus-gradient flex flex-col items-center justify-center p-6" x-show="timerActive">
+            <div class="absolute top-4 right-4">
+                <button @click="toggleSound()" class="text-white opacity-70 hover:opacity-100 p-2 glass-effect rounded-lg">
+                    <i class="fas" :class="isMuted ? 'fa-volume-mute' : 'fa-volume-up'"></i>
+                </button>
+            </div>
+            
+            <div class="text-center mb-8">
+                <h2 class="text-2xl text-indigo-300 mb-2 glow-text" x-text="timerMode + ' Time'"></h2>
+                <h3 class="text-white text-xl opacity-80" x-text="subject"></h3>
+            </div>
+            
+            <div class="mb-12">
+                <div class="text-white text-9xl font-bold glow-text" x-text="formatTime(timeRemaining)"></div>
+            </div>
+            
+            <div class="w-full max-w-xl mb-12">
+                <div class="w-full h-4 bg-gray-800 bg-opacity-50 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full progress-bar" 
+                        :class="timerMode === 'Focus' ? 'bg-indigo-500' : 'bg-purple-500'"
+                        :style="`width: ${progressPercentage}%`"></div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button @click="togglePause()" class="neo-button glass-effect text-white py-3 px-6 rounded-lg flex items-center">
+                    <i class="fas" :class="isPaused ? 'fa-play' : 'fa-pause'"></i>
+                    <span class="ml-2" x-text="isPaused ? 'Resume' : 'Pause'"></span>
+                </button>
+                <button @click="resetTimer()" class="neo-button glass-effect text-white py-3 px-6 rounded-lg flex items-center">
+                    <i class="fas fa-stop"></i>
+                    <span class="ml-2">End Session</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-800 py-8" x-show="!timerActive && !showCountdown">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row md:justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center justify-center md:justify-start">
+                        <i class="fas fa-clock text-indigo-500 text-xl mr-2"></i>
+                        <span class="text-white font-bold">PomoBuddy</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-2">Stay focused, be productive</p>
+                </div>
+                
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-indigo-400">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-400">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-400">
+                        <i class="fab fa-linkedin text-xl"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mt-8 border-t border-gray-800 pt-6">
+                <p class="text-gray-500 text-sm text-center">© 2023 PomoBuddy. All rights reserved.</p>
+                <div class="flex justify-center mt-4 space-x-4 text-sm">
+                    <a href="#" class="text-gray-500 hover:text-indigo-400">Privacy Policy</a>
+                    <a href="#" class="text-gray-500 hover:text-indigo-400">Terms of Service</a>
+                    <a href="#" class="text-gray-500 hover:text-indigo-400">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Audio elements -->
+    <audio id="tickSound" src="Clocktick.mp3" preload="auto"></audio>
+    <audio id="rainSound" src="RainSound.mp3" preload="auto" loop></audio>
+
+    <script>
+        function timerApp() {
+            return {
+                subject: "",
+                focusMinutes: 25,
+                breakMinutes: 5,
+                timeRemaining: 0,
+                timerInterval: null,
+                timerActive: false,
+                isPaused: false,
+                timerMode: "Focus",
+                showCountdown: false,
+                countdownNumber: 3,
+                totalTime: 0,
+                selectedSound: "none",
+                isMuted: false,
+                activeSound: null,
+                
+                selectSound(sound) {
+                    this.selectedSound = sound;
+                },
+                
+                startCountdown() {
+                    if (!this.subject) {
+                        this.subject = "Study Session";
+                    }
+                    
+                    const tickSound = document.getElementById('tickSound');
+                    
+                    // Improved countdown timing
+                    this.showCountdown = true;
+                    this.countdownNumber = 3;
+                    
+                    // Create more precise timing for the countdown
+                    const playTickAndUpdate = (num, delay) => {
+                        setTimeout(() => {
+                            this.countdownNumber = num;
+                            if (num > 0) {
+                                tickSound.currentTime = 0;
+                                tickSound.play();
+                            }
+                        }, delay);
+                    };
+                    
+                    // Play first tick immediately
+                    tickSound.play();
+                    
+                    // Schedule countdown with precise timing
+                    playTickAndUpdate(2, 1000);
+                    playTickAndUpdate(1, 2000);
+                    
+                    // Start the timer with exact timing
+                    setTimeout(() => {
+                        this.showCountdown = false;
+                        this.startTimer();
+                    }, 3000);
+                },
+                
+                startTimer() {
+                    this.timerActive = true;
+                    this.isPaused = false;
+                    this.timerMode = "Focus";
+                    this.timeRemaining = this.focusMinutes * 60;
+                    this.totalTime = this.timeRemaining;
+                    
+                    // Start background sounds if selected
+                    this.startBackgroundSound();
+                    
+                    this.timerInterval = setInterval(() => {
+                        if (!this.isPaused) {
+                            this.timeRemaining--;
+                            
+                            if (this.timeRemaining <= 0) {
+                                this.handleTimerComplete();
+                            }
+                        }
+                    }, 1000);
+                },
+                
+                startBackgroundSound() {
+                    if (this.isMuted) return;
+                    
+                    // Stop any playing sounds first
+                    this.stopBackgroundSounds();
+                    
+                    if (this.selectedSound === 'rain') {
+                        this.activeSound = document.getElementById('rainSound');
+                        this.activeSound.volume = 0.3;
+                        this.activeSound.play();
+                    }
+                },
+                
+                stopBackgroundSounds() {
+                    const rainSound = document.getElementById('rainSound');
+                    
+                    rainSound.pause();
+                    rainSound.currentTime = 0;
+                    
+                    this.activeSound = null;
+                },
+                
+                toggleSound() {
+                    this.isMuted = !this.isMuted;
+                    
+                    if (this.isMuted) {
+                        this.stopBackgroundSounds();
+                    } else {
+                        this.startBackgroundSound();
+                    }
+                },
+                
+                handleTimerComplete() {
+                    clearInterval(this.timerInterval);
+                    
+                    // Play tick sound instead of alarm
+                    if (!this.isMuted) {
+                        const tickSound = document.getElementById('tickSound');
+                        tickSound.currentTime = 0;
+                        tickSound.play();
+                    }
+                    
+                    if (this.timerMode === "Focus") {
+                        // Switch to break mode
+                        this.timerMode = "Break";
+                        this.timeRemaining = this.breakMinutes * 60;
+                        this.totalTime = this.timeRemaining;
+                        
+                        this.timerInterval = setInterval(() => {
+                            if (!this.isPaused) {
+                                this.timeRemaining--;
+                                
+                                if (this.timeRemaining <= 0) {
+                                    this.handleTimerComplete();
+                                }
+                            }
+                        }, 1000);
+                    } else {
+                        // Break is over, go back to setup
+                        this.resetTimer();
+                    }
+                },
+                
+                togglePause() {
+                    this.isPaused = !this.isPaused;
+                    
+                    if (this.isPaused && this.activeSound) {
+                        this.activeSound.pause();
+                    } else if (!this.isPaused && this.activeSound && !this.isMuted) {
+                        this.activeSound.play();
+                    }
+                },
+                
+                resetTimer() {
+                    clearInterval(this.timerInterval);
+                    this.stopBackgroundSounds();
+                    this.timerActive = false;
+                    this.isPaused = false;
+                },
+                
+                minimizeTimer() {
+                    this.resetTimer();
+                },
+                
+                formatTime(seconds) {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                },
+                
+                get progressPercentage() {
+                    if (this.totalTime === 0) return 0;
+                    return 100 - ((this.timeRemaining / this.totalTime) * 100);
+                }
+            };
+        }
+    </script>
+</body>
+</html>
